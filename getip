@@ -1,0 +1,9 @@
+#!/usr/bin/python
+import urllib, json
+
+def getIpInfo():
+	response = urllib.urlopen("http://freegeoip.net/json/")
+	return json.loads(response.read())
+# write it out
+ipInfo = getIpInfo()
+print(ipInfo["ip"])

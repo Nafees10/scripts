@@ -1,0 +1,30 @@
+#!/usr/bin/python
+# this script should be used to open webp images, it converts them to png, deletes the webp images, saves png, and opens the png
+import sys, os, subprocess
+# check if enough args were given
+if len(sys.argv) != 2:
+	print ("Usage:")
+	print ("	die-webp someImage.webp")
+	print ("and this script requires the APT package webp to work.")
+else:
+	# ok, file was specified
+	# convert to png
+	newFile = os.path.splitext(sys.argv[1])[0]+".png"
+	command = ["dwebp", sys.argv[1], "-o", newFile]
+	try:
+		# stdout = subprocess.PIPE lets you redirect the output
+		res = subprocess.Popen(command, stdout=subprocess.PIPE)
+	except OSError:
+		print "error: failed to call dwebp, is webp installed? try sudo apt install webp"
+		exit(-1) # if the subprocess call failed, there's not much point in continuing
+	res.wait();
+	# check if it worked
+	if res.returncode != 0:
+		print ("Failed to convert image webp image to png, using dwebp")
+		exit (-1)
+	else:
+		# delete the original image, I dont like webp
+		os.remove(sys.argv[1])
+		print ("Tada, killed that webp image")
+		# open it now, thats Thunar's problem
+		subprocess.Popen(["Thunar", newFile]);
