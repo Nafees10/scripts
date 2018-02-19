@@ -1,0 +1,86 @@
+#!/usr/bin/python3
+# a script to monitor network to see which devices are online, uses `fping` to see if host is up
+import socket, os, time
+
+# the local ip address format
+addrFormat = "192.168.10.*"
+# the number of hosts to scan
+hostsCount = 48 # 1 till 254, but there wont be more than 48 hosts on mine
+# stores the host names of each ip which was up during last scan
+hostsUp = {}
+# seconds to wait before scanning again
+scanInterval = 60
+# the shell command to exceute when a host appears to be down
+commandHostDown = "notify-send --icon=network-wired-offline-symbolic 'NetMon Script' '%hostname% - %ip% seems to be down'"
+# shell command to execute when a new host joins
+commandHostJoin = "notify-send --icon=network-wired-symbolic 'NetMon Script' '%hostname% - %ip% joined the network'"
+
+# returns an ip address from a format, by replacing the '*' by a number
+def getIpAddr(num):
+	global addrFormat
+	return addrFormat.replace("*", str(num))
+
+# returns true if a host is up
+def isUp(ipAddr):
+	print ("scanning %s"%ipAddr)
+	if os.system("fping -c1 -t500 " + ipAddr) is 0:
+		return True
+	else:
+		return False
+
+# returns hostname from an ip addr, or "unknown host" in case of error
+def getHostname(ipAddr):
+	print ("getting hostname for: %s"%ipAddr)
+	try:
+		hostname, alias, addresslist = socket.gethostbyaddr(ipAddr)
+		return hostname
+	except socket.herror:
+		return "unknown host"
+
+# scans the network, for changes in connected devices, calls the appropriate notification functions
+def scan():
+	global hostsCount, hostsUp
+	toDel = []# host's to remove from hostsUp after first loop
+	# first scan the hosts that were last up
+	for ip in hostsUp:
+		hostname = hostsUp[ip]
+		if isUp(ip):
+			newHostname = getHostname(ip)
+			if newHostname != hostname:
+				# changed, but still up
+				hostJoin(newHostname, ip)
+				hostsUp[ip] = newHostname
+		else:
+			# went down
+			hostDown(hostname, ip)
+			# remvove from hostsUp
+			toDel.append(ip)
+	# delete hosts which went down
+	for ip in toDel:
+		del hostsUp[ip]
+	# now scan all the other ip addresses
+	ipNum = 1
+	while ipNum-1 < hostsCount:
+		ip = getIpAddr(ipNum)
+		if ip not in hostsUp and isUp(ip):
+			# just joined
+			hostsUp[ip] = getHostname(ip)
+			hostJoin(hostsUp[ip],ip)
+		ipNum = ipNum+1
+
+# executes the hostdown command
+def hostDown(hostname, ip):
+	global commandHostDown
+	os.system(commandHostDown.replace("%hostname%",hostname).replace("%ip%",ip))
+
+# executes the hostjoin command
+def hostJoin(hostname, ip):
+	global commandHostJoin
+	os.system(commandHostJoin.replace("%hostname%",hostname).replace("%ip%",ip))
+
+# run the script
+while True:
+	print ("scanning")
+	scan()
+	print ("scan over, interval for %d seconds" % scanInterval)
+	time.sleep(scanInterval)
