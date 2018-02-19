@@ -7,6 +7,8 @@ open the resulting png image using default image viewer
 but that requires me entering the username & password, but after some tinkering, I found that the data I need is provided at `192.168.10.1:80/port_link_status` in JSON 
 format. This script runs in background, reads that JSON status every 30 seconds, and shows notifications if it disconnects/connects
 * trackpad-toggle - enables/disables the trackpad, had to write it because Fn+F8 didnt work out-of-the box for my ThinkPad with Xubuntu
+* netmon - this script is to be run in background. It scans the network (LAN) after every specfied number of seconds (60 default), and gives notifications when a device leaves 
+or joins the network. It requires the `fping` package to be installed, `sudo apt install fping` for ubuntu installs it.
 
 ---
 
