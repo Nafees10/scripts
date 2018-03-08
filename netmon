@@ -41,6 +41,7 @@ def getHostname(ipAddr):
 def scan():
 	global hostsCount, hostsUp
 	toDel = []# host's to remove from hostsUp after first loop
+	wentDown = [] # hosts that went down
 	# first scan the hosts that were last up
 	for ip in hostsUp:
 		hostname = hostsUp[ip]
@@ -52,7 +53,7 @@ def scan():
 				hostsUp[ip] = newHostname
 		else:
 			# went down
-			hostDown(hostname, ip)
+			wentDown.append(ip)
 			# remvove from hostsUp
 			toDel.append(ip)
 	# delete hosts which went down
@@ -63,9 +64,9 @@ def scan():
 	while ipNum-1 < hostsCount:
 		ip = getIpAddr(ipNum)
 		if ip not in hostsUp and isUp(ip):
-			# just joined
 			hostsUp[ip] = getHostname(ip)
-			hostJoin(hostsUp[ip],ip)
+			if ip not in wentDown:
+				hostJoin(hostsUp[ip],ip)
 		ipNum = ipNum+1
 
 # executes the hostdown command
