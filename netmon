@@ -88,4 +88,4 @@ while True:
 	print ("scanning")
 	scan()
 	print ("scan over, interval for %d seconds" % scanInterval)
-	#time.sleep(scanInterval)
+	time.sleep(scanInterval)
