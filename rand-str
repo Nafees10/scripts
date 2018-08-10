@@ -1,0 +1,22 @@
+#!/usr/bin/python3
+import string
+import random
+import sys
+
+def isInt(toTest):
+	try:
+		int(toTest)
+		return True
+	except ValueError:
+		return False
+
+if len(sys.argv) < 3:
+	print ("usage: ")
+	print ("rand-str STR_LENGTH OUTPUT_FIlE")
+else:
+	if isInt(sys.argv[1]):
+		s = ''.join(random.choices(string.ascii_uppercase + string.digits, k=int(sys.argv[1])))
+		with open(sys.argv[2], "w") as text_file:
+			text_file.write (s)
+	else:
+		print ("STR_LENGTH must be an integer")
