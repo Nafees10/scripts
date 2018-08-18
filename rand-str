@@ -10,13 +10,12 @@ def isInt(toTest):
 	except ValueError:
 		return False
 
-if len(sys.argv) < 3:
+if len(sys.argv) < 2:
 	print ("usage: ")
-	print ("rand-str STR_LENGTH OUTPUT_FIlE")
+	print ("rand-str length-of-string")
 else:
 	if isInt(sys.argv[1]):
 		s = ''.join(random.choices(string.ascii_uppercase + string.digits, k=int(sys.argv[1])))
-		with open(sys.argv[2], "w") as text_file:
-			text_file.write (s)
+		print (s, end='')
 	else:
-		print ("STR_LENGTH must be an integer")
+		print ("length-of-string must be an integer")
