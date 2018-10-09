@@ -28,64 +28,62 @@ def get_network_name():
 	if wifi_name[len(wifi_name)-1] == '\n':
 		wifi_name = wifi_name[0:len(wifi_name)-1]
 	return wifi_name
-	
-# functions to give notification
-def send_notification_dsl_plug_in():
-	os.popen("notify-send 'PTCL Modem Status' 'The DSL cable has been plugged in' --icon=network-wired-no-route-symbolic");
 
-def send_notification_dsl_plug_out():
-	os.popen("notify-send 'PTCL Modem Status' 'The DSL cable has been plugged out from PTCL modem' --icon=network-wired-disconnected");
-
-def send_notification_connect():
-	os.popen("notify-send 'PTCL Modem Status' 'The PTCL modem (ADSL) is connected' --icon=network-wired-symbolic");
-
-def send_notification_disconnect():
-	os.popen("notify-send 'PTCL Modem Status' 'The PTCL modem (ADSL) is disconnected' --icon=network-wired-disconnected-symbolic");
-
-def send_notification_connection_unconfigured():
-	os.popen("notify-send 'PTCL Modem Status' 'The PTCL modem (ADSL) is not configured' --icon=network-error-symbolic");
-
-def send_notification_bad_response():
-	os.popen("notify-send 'PTCL Modem Status' 'The PTCL modem sent invalid status response' --icon=network-error-symbolic");
-
-def send_notification_error():
-	os.popen("notify-send 'PTCL Modem Status' 'The PTCL modem status checker crashed' --icon=dialog-error");
+# sends a notification
+def send_notification (dsl, connected, error):
+	if error:
+		os.popen("notify-send 'PTCL Modem Status' 'Unexpected error in response' --icon=network-error-symbolic");
+	else:
+		dslString = "DSL Cable: "
+		if dsl:
+			dslString += "Plugged"
+		else:
+			dslString += "Unplugged"
+		connectionString = "Status: "
+		iconString = "network-wired-connected-symbolic"
+		if connected:
+			connectionString += "Connected"
+		else:
+			connectionString += "Disconnected"
+			iconString = "network-wired-disconnected-symbolic"
+		os.popen("notify-send 'PTCL Modem Status' '"+connectionString+"\n"+dslString+"' --icon="+iconString)
 
 # list of wifi networks on which this script should assume that it's a PTCL modem on 192.168.10.1
 ptcl_networks = ["PTCL-BB", "PTCL-BB667"]
 
-previous_dsl = "1"
-previous_conn = "Connected"
-print "starting loop"
+previous_dsl = False
+previous_conn = False
+previous_error = False
 # start the loop
 while True:
 	# get a response
 	try:
+		print ("getting /port_link_status ...")
 		if get_network_name() in ptcl_networks:
 			json_resp = get_connection_status()
 			conn = get_dsl_status(json_resp)
 			dsl = get_dsl_cable_plugged_status(json_resp)
-			print "status received: \n\t\t Connection: " + conn + "\n\t\t DSL cable: " + dsl
+			error = False
+			print "status received: \nConnection: " + conn + "\nDSL cable: " + dsl
 			# check if error
 			if dsl == "bad_response" or conn == "bad_response":
-				send_notification_bad_response()
+				error = True
+			if dsl == "1":
+				dsl = True
 			else:
-				# check if response has changed, first for DSL
-				if dsl != previous_dsl:
-					if dsl == "1":
-						send_notification_dsl_plug_in()
-					else:
-						send_notification_dsl_plug_out()
-				elif conn != previous_conn:
-					if conn == "Connected":
-						send_notification_connect()
-					elif conn == "Disconnected":
-						send_notification_disconnect()
-					else:
-						send_notification_connection_unconfigured()
+				dsl = False
+			if conn == "Connected":
+				conn = True;
+			elif conn == "Disconnected":
+				conn = False
+			else:
+				error = True
+			if error != previous_error or dsl != previous_dsl or conn != previous_conn:
+				send_notification(dsl, conn, error)
 			# set the vars to current vals
 			previous_conn = conn
 			previous_dsl = dsl
+			previous_error = error
 		else:
 			print "not a ptcl network"
 	except:
