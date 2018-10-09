@@ -9,11 +9,11 @@ hostsCount = 48 # 1 till 254, but there wont be more than 48 hosts on mine
 # stores the host names of each ip which was up during last scan
 hostsUp = {}
 # seconds to wait before scanning again
-scanInterval = 60
+scanInterval = 30
 # the shell command to exceute when a host appears to be down
-commandHostDown = "notify-send --icon=network-wired-offline-symbolic 'NetMon Script' '%hostname% - %ip% seems to be down'"
+commandHostDown = "notify-send --icon=network-wired-offline-symbolic 'NetMon Script - Host Disconnected' '%hostname%\n%ip%'"
 # shell command to execute when a new host joins
-commandHostJoin = "notify-send --icon=network-wired-symbolic 'NetMon Script' '%hostname% - %ip% joined the network'"
+commandHostJoin = "notify-send --icon=network-wired-symbolic 'NetMon Script - Host Connected' '%hostname%\n%ip%'"
 
 # returns an ip address from a format, by replacing the '*' by a number
 def getIpAddr(num):
@@ -38,8 +38,8 @@ def getHostname(ipAddr):
 		return "unknown host"
 
 # scans the network, for changes in connected devices, calls the appropriate notification functions
-def scan():
-	global hostsCount, hostsUp
+def scan(start, end):
+	global hostsUp
 	toDel = []# host's to remove from hostsUp after first loop
 	wentDown = {} # hosts that went down
 	# first scan the hosts that were last up
@@ -60,8 +60,8 @@ def scan():
 	for ip in toDel:
 		del hostsUp[ip]
 	# now scan all the other ip addresses
-	ipNum = 1
-	while ipNum-1 < hostsCount:
+	ipNum = start
+	while ipNum < end:
 		ip = getIpAddr(ipNum)
 		if ip not in hostsUp and isUp(ip):
 			hostsUp[ip] = getHostname(ip)
@@ -86,6 +86,6 @@ def hostJoin(hostname, ip):
 # run the script
 while True:
 	print ("scanning")
-	scan()
+	scan(2, 13)
 	print ("scan over, interval for %d seconds" % scanInterval)
 	time.sleep(scanInterval)
