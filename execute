@@ -1,0 +1,16 @@
+#!/usr/bin/python3
+# reads all command line parameters as one, and executes that using "$SHELL -i -c %s"
+#		(becaues I couldn't figure out how to make xfce4-appfinder to run a command if it didnt match application name)
+
+import sys
+import os
+if len(sys.argv) > 1:
+	i = 1
+	s = ""
+	while i < len(sys.argv):
+		s = s + sys.argv[i] + " "
+		i = i + 1
+	# execute it now
+	os.system(s)
+else:
+	print ("not enough arguments")
