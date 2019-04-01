@@ -11,6 +11,6 @@ if len(sys.argv) > 1:
 		s = s + sys.argv[i] + " "
 		i = i + 1
 	# execute it now
-	os.system(s)
+	os.system("$SHELL -i -c '"+s+"'&")
 else:
 	print ("not enough arguments")
